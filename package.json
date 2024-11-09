@@ -1,0 +1,23 @@
+{
+  "name": "memory",
+  "version": "1.0.0",
+  "description": "Memory match game",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Game",
+    "Memory"
+  ],
+  "author": "Nathan Wilcox",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.86.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
