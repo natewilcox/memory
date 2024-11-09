@@ -12,7 +12,11 @@
     "Memory"
   ],
   "author": "Nathan Wilcox",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/natewilcox/memory.git"
+  },
   "dependencies": {
     "phaser": "^3.86.0"
   },
