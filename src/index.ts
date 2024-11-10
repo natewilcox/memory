@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
+import { Board } from './scenes/board';
 
 const config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
+  scene: Board,
   physics: {
     default: "arcade",
     arcade: {
