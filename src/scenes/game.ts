@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { Board } from "../objects/board";
 import { MemoryGame } from "../objects/game";
+import { ColyseusServerService } from "../services/server";
+import { ClientMessages, MessageType } from "../types/messages";
 
 export class Game extends Phaser.Scene {
 
@@ -8,22 +10,25 @@ export class Game extends Phaser.Scene {
     private GAME_WIDTH = 5;
     private GAME_HEIGHT = 4;
 
-    private memoryGame!: MemoryGame;
     private squares: Phaser.GameObjects.Graphics[] = [];
     private labels: Phaser.GameObjects.Text[] = [];
 
     private block: boolean = false;
 
-    create() {
-        
-        const layout = Board.generateLayout(this.GAME_SIZE);
-        const board = new Board(layout);
+    private server!: ColyseusServerService;
 
-        this.memoryGame = new MemoryGame(board)
-        this.drawBoard();
+    async create() {
+        
+        this.server = ColyseusServerService.getInstance();
+        this.server.configure("http://localhost:2567");
+        await this.server.connect("memory_room");
+
+        this.server.onRoomStateChange((room) => {
+            this.drawBoard(room.state.numbers);
+        });
     }
 
-    drawBoard() {
+    drawBoard(numbers: number[]) {
 
         this.clearBoard();
 
@@ -45,8 +50,8 @@ export class Game extends Phaser.Scene {
                 const square = this.createSquare(x, y, 150, () => this.squareClickedHandler(square_index));
                 this.squares.push(square);
 
-                if(this.memoryGame.board.isVisible(square_index)) {
-                    this.labels.push(this.createLabel(x, y, this.memoryGame.board.get(square_index)));
+                if(numbers[square_index] != -1) {
+                    this.labels.push(this.createLabel(x, y, numbers[square_index]));
                 }
 
                 i++;
@@ -89,22 +94,6 @@ export class Game extends Phaser.Scene {
             return;
         }
 
-        this.memoryGame.guess(i,
-            () => {
-                this.block = true;
-                this.time.addEvent({
-                    delay: 1000,
-                    callback: () => {
-
-                        this.memoryGame.hideWrong();
-                        this.drawBoard();
-                        this.block = false;
-                    },
-                    callbackScope: this
-                })
-            }
-        );
-
-        this.drawBoard();
+        this.server.send(MessageType.TakeTurn, { i });
     }
 }
