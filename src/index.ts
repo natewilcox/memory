@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
-import { Board } from './scenes/board';
+import { Game } from './scenes/game';
 
 const config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
-  scene: Board,
+  scale: {
+      mode: Phaser.Scale.RESIZE,
+      autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  scene: Game,
   physics: {
     default: "arcade",
     arcade: {
