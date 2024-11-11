@@ -1,5 +1,4 @@
 import { Client, Room } from "colyseus.js";
-import { MemoryRoom } from "../objects/Room";
 import { ClientMessages, MessageType } from "../types/messages";
 
 export enum ServerEvents {
