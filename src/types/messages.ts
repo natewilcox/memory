@@ -3,5 +3,6 @@ export enum ClientMessages {
 }
 
 export enum MessageType {
-    TakeTurn = 1
+    TakeTurn = 1,
+    Restart = 2
 }
