@@ -33,7 +33,7 @@ jobs:
           git config --local user.email "natewilcox@gmail.com"
           git config --local user.name "GitHub Action"
 
-          npm -w @natewilcox/memory version patch -m "Automated version bump [skip ci]"
+          npm version patch -m "Automated version bump [skip ci]"
           git commit -am "Automated version bump [skip ci]"
           git push origin HEAD:main
 
