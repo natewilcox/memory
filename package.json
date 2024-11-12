@@ -1,12 +1,13 @@
 {
-    "name": "memory",
+    "name": "@natewilcox/memory",
     "version": "1.0.0",
     "description": "Memory match game",
     "main": "index.js",
     "type": "module",
     "scripts": {
         "dev": "vite --mode development",
-        "test": "vitest"
+        "test": "vitest",
+        "build": "vite build"
     },
     "keywords": [
         "Game",
