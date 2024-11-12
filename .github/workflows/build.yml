@@ -22,11 +22,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Archive client artifacts
-        uses: actions/upload-artifact@v2
-        with:
-            name: 'build-artifact'
-            path: ./dist
+      # - name: Archive client artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #       name: 'build-artifact'
+      #       path: ./dist
 
       - name: Patch version
         run: |
