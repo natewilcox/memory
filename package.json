@@ -1,6 +1,6 @@
 {
     "name": "@natewilcox/memory",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Memory match game",
     "main": "index.js",
     "type": "module",
