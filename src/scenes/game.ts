@@ -11,7 +11,7 @@ export class Game extends Phaser.Scene {
     private server_host = import.meta.env.VITE_HOST;
 
     async create() {
-        
+
         this.server = ColyseusServerService.getInstance();
         this.server.configure(this.server_host);
         await this.server.connect("memory_room");
@@ -26,30 +26,74 @@ export class Game extends Phaser.Scene {
         const numbers: number[] = state.numbers;
         const answerers: string[] = state.answerer;
         const states: number[] = state.number_state;
-        
+
         this.clearBoard();
-      
+
         const gameW = this.game.canvas.width;
         const gameH = this.game.canvas.height;
 
-        const gameX = (gameW/2) - ((160*4)/2);
-        const gameY = (gameH/2) - ((160*5)/2);
+        //draw header
+        const header = this.add.graphics();
+        header.fillStyle(0xffffff, 1);
+        header.fillRoundedRect(10, 10, gameW - 20, 150, 10);
 
-        const squareSize = 150;
+        let status_text = this.server.SessionID == state.activePlayer ? "Your Turn" : "Their Turn";
+        let header_text = state.players.length == 1 ? "Solo" : `PvP - ${status_text}`;
+
+        const is_game_active = answerers.some(a => a == "");
+
+        if (!is_game_active) {
+
+            const my_score = answerers.filter(a => a == this.server.SessionID).length;
+
+            header_text = my_score == 10 ? "Tie" : my_score > 10 ? "You Win" : "You Lose";
+            status_text = "";
+        }
+
+        const player_count = this.add.text(20, 60, header_text, {
+            fontSize: '50px',
+            color: 'black',
+            fontFamily: 'Arial',
+            fontStyle: 'bold'
+        });
+        this.labels.push(player_count);
+
+        //draw footer
+        const footer = this.add.graphics();
+        footer.fillStyle(0xffffff, 1);
+        footer.fillRoundedRect(10, gameH-160, gameW - 20, 150, 10);
+
+        if (!is_game_active) {
+            const restart = this.add.text(gameW / 2, gameH - 80, "Tap to restart", {
+                fontSize: '50px',
+                color: 'black',
+                fontFamily: 'Arial',
+                fontStyle: 'bold'
+            }).setOrigin(0.5, 0.5);
+
+            restart.setInteractive();
+            restart.on('pointerdown', () => this.restartClickedHandler());
+            this.labels.push(restart);
+        }
+
+        //draw grid
+        const squareSize = (gameW-50) / 4;
+        const gameX = (gameW / 2) - (((squareSize+10) * 4) / 2) + 5;
+        const gameY = (gameH / 2) - (((squareSize+10) * 5) / 2);
         let i = 0;
 
-        for(let r=0; r<5; r++) {
-            for(let c=0; c<4; c++) {
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 4; c++) {
 
-                const x = (160*c) + gameX;
-                const y = (160*r) + gameY;
+                const x = ((squareSize+10) * c) + gameX;
+                const y = ((squareSize+10) * r) + gameY;
                 const square_index = i;
                 const number = numbers[square_index];
                 const owner = answerers[square_index];
                 const isMine = owner == this.server.SessionID;
 
                 let square_bg = 0xffffff;
-                if(owner != "") {
+                if (owner != "") {
                     square_bg = isMine ? 0x98cf7e : 0xcf7e7e;
                 }
 
@@ -60,18 +104,20 @@ export class Game extends Phaser.Scene {
                 square.fillRoundedRect(x, y, squareSize, squareSize, 10);
                 square.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
                 square.on('pointerdown', () => this.squareClickedHandler(square_index));
-        
+
                 square.data.set('color', 0xffffff);
                 this.squares.push(square);
 
-                if(states[square_index] == 1) {
-                    this.flash(square, x, y);
+                if (states[square_index] == 1) {
+                    this.flash(square, x, y, squareSize);
                 }
 
-                if(numbers[square_index] != -1) {
-                    const text = this.add.text(x + 80, y + 80, number+ "", {
+                if (numbers[square_index] != -1) {
+                    const text = this.add.text(x + (squareSize/2), y + (squareSize/2), number + "", {
                         color: 'black',
-                        fontSize: '120px'
+                        fontSize: '60px',
+                        fontFamily: 'Arial',
+                        fontStyle: 'bold'
                     }).setOrigin(0.5, 0.5);
 
                     this.labels.push(text);
@@ -79,29 +125,6 @@ export class Game extends Phaser.Scene {
 
                 i++;
             }
-        }
-
-        const player_count = this.add.text(gameW/2, 100, `players: ${state.players.length}`, {
-            fontSize: '20px'
-        }).setOrigin(0.5, 0.5);
-        this.labels.push(player_count);
-
-        const status_text = this.server.SessionID == state.activePlayer ? "Your Turn" : "Their Turn";
-        const status = this.add.text(gameW/2, 150, status_text, {
-            fontSize: '40px'
-        }).setOrigin(0.5, 0.5);
-        this.labels.push(status);
-
-        const unanswered = answerers.some(a => a == "");
-
-        if(!unanswered) {
-            const restart = this.add.text(gameW/2, gameH-200, "Tap to restart", {
-                fontSize: '60px'
-            }).setOrigin(0.5, 0.5);
-    
-            restart.setInteractive();
-            restart.on('pointerdown', () => this.restartClickedHandler());
-            this.labels.push(restart);
         }
     }
 
@@ -118,16 +141,16 @@ export class Game extends Phaser.Scene {
         this.server.send(MessageType.TakeTurn, { i });
     }
 
-    private flash(square: Phaser.GameObjects.Graphics, x: number, y: number) {
-   
-        if(square == null || square.data == null) {
+    private flash(square: Phaser.GameObjects.Graphics, x: number, y: number, w: number) {
+
+        if (square == null || square.data == null) {
             return;
         }
 
         square.clear();
 
-        if(square.data.get('color') == 0xffffff) {
-        
+        if (square.data.get('color') == 0xffffff) {
+
             square.data.set('color', 0xcf7e7e);
             square.fillStyle(0xcf7e7e, 1);
         }
@@ -136,10 +159,10 @@ export class Game extends Phaser.Scene {
             square.fillStyle(0xffffff, 1);
         }
 
-        square.fillRoundedRect(x, y, 150, 150, 10);
+        square.fillRoundedRect(x, y, w, w, 10);
 
-        if(square.active) {
-            this.time.delayedCall(10, () => this.flash(square, x, y));
+        if (square.active) {
+            this.time.delayedCall(10, () => this.flash(square, x, y, w));
         }
     }
 }
