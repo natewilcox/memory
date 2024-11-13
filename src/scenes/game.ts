@@ -31,11 +31,13 @@ export class Game extends Phaser.Scene {
 
         const gameW = this.game.canvas.width;
         const gameH = this.game.canvas.height;
+        const squareSize = (gameW-50) / 4;
 
         //draw header
+        const header_footer_height = ((gameH - (squareSize*5) - 60)/2)-15;
         const header = this.add.graphics();
         header.fillStyle(0xffffff, 1);
-        header.fillRoundedRect(10, 10, gameW - 20, 150, 10);
+        header.fillRoundedRect(10, 10, gameW - 20, header_footer_height, 10);
 
         let status_text = this.server.SessionID == state.activePlayer ? "Your Turn" : "Their Turn";
         let header_text = state.players.length == 1 ? "Solo" : `PvP - ${status_text}`;
@@ -50,8 +52,8 @@ export class Game extends Phaser.Scene {
             status_text = "";
         }
 
-        const player_count = this.add.text(20, 60, header_text, {
-            fontSize: '50px',
+        const player_count = this.add.text(20, header_footer_height/2, header_text, {
+            fontSize: `${header_footer_height*.55}px`,
             color: 'black',
             fontFamily: 'Arial',
             fontStyle: 'bold'
@@ -61,15 +63,15 @@ export class Game extends Phaser.Scene {
         //draw footer
         const footer = this.add.graphics();
         footer.fillStyle(0xffffff, 1);
-        footer.fillRoundedRect(10, gameH-160, gameW - 20, 150, 10);
+        footer.fillRoundedRect(10, gameH-header_footer_height-20, gameW - 20, header_footer_height, 10);
 
         if (!is_game_active) {
-            const restart = this.add.text(gameW / 2, gameH - 80, "Tap to restart", {
-                fontSize: '50px',
+            const restart = this.add.text(gameW / 2, gameH - (header_footer_height/2), "Tap to restart", {
+                fontSize: `${header_footer_height*.55}px`,
                 color: 'black',
                 fontFamily: 'Arial',
                 fontStyle: 'bold'
-            }).setOrigin(0.5, 0.5);
+            }).setOrigin(0.5, 1);
 
             restart.setInteractive();
             restart.on('pointerdown', () => this.restartClickedHandler());
@@ -77,7 +79,6 @@ export class Game extends Phaser.Scene {
         }
 
         //draw grid
-        const squareSize = (gameW-50) / 4;
         const gameX = (gameW / 2) - (((squareSize+10) * 4) / 2) + 5;
         const gameY = (gameH / 2) - (((squareSize+10) * 5) / 2);
         let i = 0;
