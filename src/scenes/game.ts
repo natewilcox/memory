@@ -23,6 +23,7 @@ export class Game extends Phaser.Scene {
 
     drawBoard(state: any) {
 
+        const peek = state.peek;
         const numbers: number[] = state.numbers;
         const answerers: string[] = state.answerer;
         const states: number[] = state.number_state;
@@ -52,12 +53,12 @@ export class Game extends Phaser.Scene {
             status_text = "";
         }
 
-        const player_count = this.add.text(20, header_footer_height/2, header_text, {
+        const player_count = this.add.text(gameW / 2, (header_footer_height/2)+10, header_text, {
             fontSize: `${header_footer_height*.55}px`,
             color: 'black',
             fontFamily: 'Arial',
             fontStyle: 'bold'
-        });
+        }).setOrigin(0.5, 0.5);
         this.labels.push(player_count);
 
         //draw footer
@@ -66,6 +67,7 @@ export class Game extends Phaser.Scene {
         footer.fillRoundedRect(10, gameH-header_footer_height-20, gameW - 20, header_footer_height, 10);
 
         if (!is_game_active) {
+
             const restart = this.add.text(gameW / 2, gameH - (header_footer_height/2), "Tap to restart", {
                 fontSize: `${header_footer_height*.55}px`,
                 color: 'black',
@@ -77,6 +79,19 @@ export class Game extends Phaser.Scene {
             restart.on('pointerdown', () => this.restartClickedHandler());
             this.labels.push(restart);
         }
+        else if(peek) {
+            const peekCommand = this.add.text(gameW / 2, (gameH - (header_footer_height/2))+10, "Peek", {
+                fontSize: `${header_footer_height*.55}px`,
+                color: 'black',
+                fontFamily: 'Arial',
+                fontStyle: 'bold'
+            }).setOrigin(0.5, 1);
+
+            peekCommand.setInteractive();
+            peekCommand.on('pointerdown', () => this.peekCommandClickedHandler());
+            this.labels.push(peekCommand);
+        }
+        
 
         //draw grid
         const gameX = (gameW / 2) - (((squareSize+10) * 4) / 2) + 5;
@@ -132,6 +147,10 @@ export class Game extends Phaser.Scene {
     clearBoard() {
         this.labels.forEach(label => label.destroy());
         this.squares.forEach(square => square.destroy());
+    }
+
+    private peekCommandClickedHandler() {
+        this.server.send(MessageType.Peek);
     }
 
     private restartClickedHandler() {

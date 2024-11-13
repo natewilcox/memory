@@ -4,5 +4,6 @@ export enum ClientMessages {
 
 export enum MessageType {
     TakeTurn = 1,
-    Restart = 2
+    Restart = 2,
+    Peek = 3
 }
