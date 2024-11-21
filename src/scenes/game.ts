@@ -32,13 +32,21 @@ export class Game extends Phaser.Scene {
 
         const gameW = this.game.canvas.width;
         const gameH = this.game.canvas.height;
-        const squareSize = (gameW-50) / 4;
+
+        const isPortrait = gameH > gameW;
+        const colums = isPortrait ? 4 : 5;
+        const rows = isPortrait ? 5 : 4;
+
+        const squareSize = isPortrait ? (gameW-50) / colums : (gameH-50) / rows;
+        const boardWidth = squareSize*5;
 
         //draw header
-        const header_footer_height = ((gameH - (squareSize*5) - 60)/2)-15;
+        const header_footer_height = isPortrait ? ((gameH - (squareSize*5) - 60)/2)-15 : gameH - 20;
+        const header_footer_width = isPortrait ? gameW - 20 : ((gameW - (squareSize*5) - 60)/2)-15 ;
+
         const header = this.add.graphics();
         header.fillStyle(0xffffff, 1);
-        header.fillRoundedRect(10, 10, gameW - 20, header_footer_height, 10);
+        header.fillRoundedRect(10, 10, header_footer_width, header_footer_height, 10);
 
         let status_text = this.server.SessionID == state.activePlayer ? "Your Turn" : "Their Turn";
         let header_text = state.players.length == 1 ? "Solo" : `PvP - ${status_text}`;
@@ -53,18 +61,27 @@ export class Game extends Phaser.Scene {
             status_text = "";
         }
 
-        const player_count = this.add.text(gameW / 2, (header_footer_height/2)+10, header_text, {
-            fontSize: `${header_footer_height*.55}px`,
+        const status_x = isPortrait ? gameW / 2 : header_footer_width/2;
+        const status_y = (header_footer_height/2)+10;
+        const status_size = isPortrait ? `${header_footer_height*.55}px` : `${header_footer_width*.55}px`;
+
+        const player_count = this.add.text(status_x, status_y, header_text, {
+            fontSize: status_size,
             color: 'black',
             fontFamily: 'Arial',
             fontStyle: 'bold'
         }).setOrigin(0.5, 0.5);
         this.labels.push(player_count);
 
+        player_count.setRotation(isPortrait ? 0 : Math.PI/2);
+
         //draw footer
+        const footer_x = isPortrait ? 10 : gameW - header_footer_width - 15;
+        const footer_y = isPortrait ? gameH-header_footer_height-20 : 10;
+
         const footer = this.add.graphics();
         footer.fillStyle(0xffffff, 1);
-        footer.fillRoundedRect(10, gameH-header_footer_height-20, gameW - 20, header_footer_height, 10);
+        footer.fillRoundedRect(footer_x, footer_y, header_footer_width, header_footer_height, 10);
 
         if (!is_game_active) {
 
@@ -79,27 +96,35 @@ export class Game extends Phaser.Scene {
             restart.on('pointerdown', () => this.restartClickedHandler());
             this.labels.push(restart);
         }
-        else if(peek) {
-            const peekCommand = this.add.text(gameW / 2, (gameH - (header_footer_height/2))+10, "Peek", {
-                fontSize: `${header_footer_height*.55}px`,
+        //else if(peek) {
+
+            const action_x = isPortrait ? gameW / 2 : gameW - (header_footer_width/2)-15;
+            const action_y = (gameH - (header_footer_height/2))+10;
+
+            const peekCommand = this.add.text(action_x, action_y, "Peek", {
+                fontSize: status_size,
                 color: 'black',
                 fontFamily: 'Arial',
                 fontStyle: 'bold'
-            }).setOrigin(0.5, 1);
+            }).setOrigin(0.5, 0.5);
 
             peekCommand.setInteractive();
             peekCommand.on('pointerdown', () => this.peekCommandClickedHandler());
+            peekCommand.setRotation(isPortrait ? 0 : Math.PI/2);
+
             this.labels.push(peekCommand);
-        }
-        
+        //}
 
         //draw grid
-        const gameX = (gameW / 2) - (((squareSize+10) * 4) / 2) + 5;
-        const gameY = (gameH / 2) - (((squareSize+10) * 5) / 2);
+        const gameX = (gameW / 2) - (((squareSize+10) * colums) / 2) + 5;
+        const gameY = (gameH / 2) - (((squareSize+10) * rows) / 2);
         let i = 0;
 
-        for (let r = 0; r < 5; r++) {
-            for (let c = 0; c < 4; c++) {
+        console.log(`colums=${colums}`);
+        console.log(`rows=${rows}`);
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < colums; c++) {
 
                 const x = ((squareSize+10) * c) + gameX;
                 const y = ((squareSize+10) * r) + gameY;
